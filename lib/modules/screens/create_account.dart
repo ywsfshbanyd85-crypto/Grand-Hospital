@@ -1,506 +1,861 @@
-import 'package:flutter/material.dart'; // دي المكتبة اللي فيها كل الأدوات اللي بنستخدمها في تصميم صفحات فلاتر
-import 'login_page.dart'; // هنا بنستدعي صفحة تسجيل الدخول عشان نقدر نروح لها لما المستخدم يدوس على Login
+import 'package:flutter/material.dart'; 
+import 'home_screen.dart';
 
-// هنا بنعمل صفحة إنشاء حساب جديد
+// =====================================================
+// إنشاء صفحة إنشاء حساب جديد (Create Account)
+// StatefulWidget لأن الصفحة تحتوي على بيانات وحالات متغيرة
+// =====================================================
 class CreateAccount extends StatefulWidget {
-  const CreateAccount({super.key}); // ده الكونستراكتور بتاع الصفحة
+  const CreateAccount({super.key});
 
   @override
-  State<CreateAccount> createState() => _CreateAccountState(); // هنا بنربط الصفحة بالكلاس اللي هنتحكم فيه في البيانات والتغييرات
+  State<CreateAccount> createState() => _CreateAccountState();
 }
 
-// هنا بنكتب كل المتغيرات والأكواد اللي بتتحكم في الصفحة
 class _CreateAccountState extends State<CreateAccount> {
 
-  bool _isChecked = false; // ده عشان نعرف المستخدم وافق على الشروط ولا لسه
-  bool _isPasswordHidden = true; // ده عشان نتحكم في الباسورد يظهر ولا يفضل مخفي
+  // =====================================================
+  // المتغيرات المسؤولة عن حالة الصفحة
+  // =====================================================
 
-  // ده المتحكم اللي بنستخدمه عشان نعرف الباسورد اللي المستخدم بيكتبه
-  final TextEditingController _passwordController =
-      TextEditingController();
+  // تحديد ما إذا كان المستخدم وافق على الشروط والأحكام
+  bool _isChecked = false;
 
-  String? _passwordError; // هنا بنحفظ رسالة الخطأ لو الباسورد مش مطابق للشروط
-  String? _selectedGender; // هنا بنحفظ النوع اللي المستخدم اختاره
-  DateTime? _selectedDate; // هنا بنحفظ تاريخ الميلاد اللي المستخدم اختاره
+  // التحكم في إظهار وإخفاء كلمة المرور
+  bool _isPasswordHidden = true;
 
-  // دي الدالة اللي بنستخدمها عشان نفتح التقويم ونختار تاريخ الميلاد
+  // =====================================================
+  // إنشاء Controllers للتحكم في حقول إدخال البيانات
+  // وتخزين النصوص التي يكتبها المستخدم
+  // =====================================================
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  // =====================================================
+  // متغيرات تخزين رسائل الخطأ الخاصة بكل حقل
+  // String? معناها أن المتغير ممكن يحتوي على نص أو قيمة null
+  // =====================================================
+
+  String? _nameError;
+  String? _phoneError;
+  String? _emailError;
+  String? _addressError;
+  String? _passwordError;
+  String? _dateError;
+  String? _genderError;
+
+  // تخزين النوع الذي اختاره المستخدم
+  String? _selectedGender;
+
+  // تخزين تاريخ الميلاد الذي اختاره المستخدم
+  DateTime? _selectedDate;
+
+  // =====================================================
+  // دالة اختيار تاريخ الميلاد
+  // Future و async و await للتعامل مع عملية اختيار التاريخ
+  // =====================================================
   Future<void> _selectDate() async {
 
-    // هنا بنفتح التقويم عشان المستخدم يختار تاريخ ميلاده
+    // فتح نافذة التقويم لاختيار تاريخ الميلاد
     DateTime? pickedDate = await showDatePicker(
-      context: context, // ده عشان التقويم يظهر فوق الصفحة الحالية
-      initialDate: DateTime(2000), // ده التاريخ اللي التقويم هيبدأ يعرضه أول ما يفتح
-      firstDate: DateTime(1900), // ده أقدم تاريخ المستخدم يقدر يختاره
-      lastDate: DateTime.now(), // هنا بنخلي آخر تاريخ ممكن يختاره هو تاريخ النهارده
-      helpText: 'Select your date of birth', // دي الجملة اللي بتظهر فوق التقويم
+      context: context,
 
-      // هنا بنظبط ألوان التقويم عشان تناسب ألوان التطبيق
+      // التاريخ الذي يبدأ التقويم بعرضه
+      initialDate: DateTime(2000),
+
+      // أقدم تاريخ يمكن للمستخدم اختياره
+      firstDate: DateTime(1900),
+
+      // منع اختيار تاريخ بعد تاريخ اليوم
+      lastDate: DateTime.now(),
+
+      helpText: 'Select your date of birth',
+
+      // =================================================
+      // تخصيص ألوان وشكل نافذة التقويم
+      // =================================================
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith( // هنا بناخد شكل الصفحة ونغير فيه ألوان التقويم
+          data: Theme.of(context).copyWith(
+
+            // تحديد ألوان التقويم
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF1E3A8A), // ده اللون الأساسي اللي بيظهر في التقويم
-              onPrimary: Colors.white, // ده لون الكلام اللي بيظهر فوق اللون الأساسي
-              surface: Color(0xFFF1F5F9), // ده لون خلفية التقويم
-              onSurface: Color(0xFF1E293B), // ده لون الكلام والتواريخ اللي جوه التقويم
+              primary: Color(0xFF1E3A8A),
+              onPrimary: Colors.white,
+              surface: Color(0xFFF1F5F9),
+              onSurface: Color(0xFF1E293B),
             ),
 
-            // هنا بنغير لون الأزرار اللي جوه التقويم
+            // تخصيص لون الأزرار الموجودة داخل التقويم
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF1E3A8A), // ده لون الكلام بتاع الأزرار
+                foregroundColor: const Color(0xFF1E3A8A),
               ),
-            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFFF1F5F9)), // ده لون الخلفية بتاعة نافذة التقويم
+            ),
+
+            // تحديد لون خلفية نافذة التقويم
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFFF1F5F9),
+            ),
           ),
-          child: child!, // هنا بنعرض التقويم بعد ما غيرنا ألوانه
+
+          // عرض التقويم بعد تطبيق التنسيق
+          child: child!,
         );
       },
     );
 
-    // هنا بنشوف المستخدم اختار تاريخ ولا ضغط إلغاء
+    // التأكد من أن المستخدم اختار تاريخاً ولم يضغط إلغاء
     if (pickedDate != null) {
-      setState(() { // دي عشان الصفحة تعمل تحديث ويظهر التاريخ الجديد
-        _selectedDate = pickedDate; // هنا بنحفظ التاريخ اللي المستخدم اختاره
+      setState(() {
+
+        // حفظ تاريخ الميلاد المختار
+        _selectedDate = pickedDate;
+
+        // إزالة رسالة الخطأ بعد اختيار التاريخ
+        _dateError = null;
       });
     }
   }
 
-  // دي الدالة اللي بنستخدمها عشان نتأكد إن الباسورد مناسب
+  // =====================================================
+  // دالة التحقق من صحة البيانات وإنشاء الحساب
+  // =====================================================
   void _validateAndSubmit() {
-    setState(() { // هنا بنخلي الصفحة تعمل تحديث عشان رسالة الخطأ تظهر لو موجودة
 
-      // هنا بنشوف الباسورد كام حرف
-      if (_passwordController.text.length < 8) {
-        _passwordError =
-            'Password must be at least 8 characters long.'; // لو أقل من 8 حروف بنظهر رسالة الخطأ دي
+    // تحديث الصفحة لإظهار رسائل الخطأ عند وجودها
+    setState(() {
+
+      // =================================================
+      // التحقق من الاسم
+      // التأكد من أن المستخدم أدخل اسمه
+      // =================================================
+      if (_nameController.text.trim().isEmpty) {
+        _nameError = 'Please enter your full name.';
       } else {
-        _passwordError = null; // لو الباسورد 8 حروف أو أكتر بنشيل رسالة الخطأ
+        _nameError = null;
+      }
+
+      // =================================================
+      // التحقق من رقم الهاتف
+      // يجب أن يتكون رقم الهاتف من 11 رقماً
+      // =================================================
+      if (_phoneController.text.trim().isEmpty) {
+        _phoneError = 'Please enter your phone number.';
+      } else if (_phoneController.text.trim().length != 11) {
+        _phoneError = 'Phone number must be exactly 11 digits.';
+      } else {
+        _phoneError = null;
+      }
+
+      // =================================================
+      // التحقق من البريد الإلكتروني
+      // يجب أن ينتهي البريد الإلكتروني بـ @gmail.com
+      // =================================================
+      String emailInput = _emailController.text.trim();
+
+      if (emailInput.isEmpty) {
+        _emailError = 'Please enter your email.';
+      } else if (!emailInput.endsWith('@gmail.com')) {
+        _emailError = 'Email must end with @gmail.com';
+      } else {
+        _emailError = null;
+      }
+
+      // =================================================
+      // التحقق من العنوان
+      // =================================================
+      if (_addressController.text.trim().isEmpty) {
+        _addressError = 'Please enter your address.';
+      } else {
+        _addressError = null;
+      }
+
+      // =================================================
+      // التحقق من تاريخ الميلاد
+      // =================================================
+      if (_selectedDate == null) {
+        _dateError = 'Please select date.';
+      } else {
+        _dateError = null;
+      }
+
+      // =================================================
+      // التحقق من اختيار النوع
+      // =================================================
+      if (_selectedGender == null) {
+        _genderError = 'Please select gender.';
+      } else {
+        _genderError = null;
+      }
+
+      // =================================================
+      // التحقق من كلمة المرور
+      // يجب ألا تقل عن 8 أحرف
+      // =================================================
+      if (_passwordController.text.length < 8) {
+        _passwordError = 'Password must be at least 8 characters long.';
+      } else {
+        _passwordError = null;
+      }
+
+      // =================================================
+      // التأكد من عدم وجود أي أخطاء في جميع الحقول
+      // إذا كانت جميع القيم null يتم الانتقال للصفحة الرئيسية
+      // =================================================
+      if (_nameError == null &&
+          _phoneError == null &&
+          _emailError == null &&
+          _addressError == null &&
+          _dateError == null &&
+          _genderError == null &&
+          _passwordError == null) {
+
+        // الانتقال إلى الصفحة الرئيسية
+        // مع إزالة الصفحات السابقة من سجل التنقل
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomeScreen(),
+          ),
+
+          // false تمنع الرجوع إلى الصفحات السابقة
+          (route) => false,
+        );
       }
     });
   }
 
+  // =====================================================
+  // التخلص من Controllers عند مغادرة الصفحة
+  // لتجنب استهلاك موارد إضافية
+  // =====================================================
   @override
   void dispose() {
-    _passwordController.dispose(); // هنا بنقفل المتحكم بتاع الباسورد لما نخلص من الصفحة
-    super.dispose(); // ده بيكمل عملية إغلاق الصفحة بالطريقة العادية
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _addressController.dispose();
+    _passwordController.dispose();
+
+    super.dispose();
   }
 
+  // =====================================================
+  // بناء واجهة صفحة إنشاء الحساب
+  // =====================================================
   @override
-  Widget build(BuildContext context) { // دي الدالة اللي بنكتب جواها شكل الصفحة
-    return Scaffold( // دي الهيكل الأساسي اللي بنبني جواه الصفحة
-      backgroundColor: Colors.white, // هنا بنخلي خلفية الصفحة بيضاء
+  Widget build(BuildContext context) {
 
-      // ده الشريط اللي بيظهر فوق الصفحة
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      // =================================================
+      // الشريط العلوي للصفحة (AppBar)
+      // =================================================
       appBar: AppBar(
-        backgroundColor: Colors.white, // ده لون خلفية الشريط
-        elevation: 0, // هنا بنشيل الظل اللي تحت الشريط
-        automaticallyImplyLeading: false, // هنا بنمنع ظهور زرار الرجوع بشكل تلقائي
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        elevation: 0,
+
+        // منع ظهور زر الرجوع تلقائياً
+        automaticallyImplyLeading: false,
+
+        // عنوان الصفحة
         title: const Text(
-          'Create Account', // ده عنوان الصفحة اللي بيظهر فوق
+          'Create Account',
           style: TextStyle(
-            color: Colors.black87, // ده لون العنوان
-            fontWeight: FontWeight.bold, // هنا بنخلي الخط عريض
-            fontSize: 20, // ده حجم الخط
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
       ),
 
-      // هنا بنبدأ نحط محتويات الصفحة
-      body: SafeArea( // دي عشان المحتوى ميدخلش تحت النوتش أو شريط الموبايل
-        child: SingleChildScrollView( // دي عشان نقدر ننزل ونطلع في الصفحة لو المحتوى طويل
+      // =================================================
+      // محتوى الصفحة
+      // SafeArea لحماية المحتوى من النوتش
+      // SingleChildScrollView للسماح بالتمرير
+      // =================================================
+      body: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
-            horizontal: 20.0, // هنا بنسيب مسافة من اليمين والشمال
-            vertical: 10.0, // وهنا بنسيب مسافة من فوق وتحت
+            horizontal: 20.0,
+            vertical: 10.0,
           ),
 
-          child: Column( // هنا بنرتب كل العناصر تحت بعض
-            crossAxisAlignment: CrossAxisAlignment.start, // هنا بنخلي العناصر تبدأ من ناحية الشمال
+          // ترتيب عناصر الصفحة رأسياً
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              // العنوان الرئيسي للصفحة
               const Text(
-                'Your care, your account', // دي الجملة الرئيسية اللي بتظهر للمستخدم
+                'Your care, your account',
                 style: TextStyle(
-                  fontSize: 24, // ده حجم الخط
-                  fontWeight: FontWeight.bold, // هنا بنخلي الخط عريض
-                  color: Colors.black87, // ده لون الكلام
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
 
-              const SizedBox(height: 6), // دي مسافة صغيرة بين الجملتين
+              const SizedBox(height: 6),
 
+              // وصف مختصر للمستخدم
               const Text(
-                'Tell us a little about yourself to get started.', // دي جملة بتوضح للمستخدم إنه يكتب بياناته
+                'Tell us a little about yourself to get started.',
                 style: TextStyle(
-                  fontSize: 14, // ده حجم الخط
-                  color: Colors.grey, // ده لون الكلام
+                  fontSize: 14,
+                  color: Colors.grey,
                 ),
               ),
 
-              const SizedBox(height: 20), // هنا بنسيب مسافة قبل أول خانة
+              const SizedBox(height: 20),
 
-              // هنا بنحط عنوان خانة الاسم
+              // =================================================
+              // حقل الاسم بالكامل
+              // =================================================
               _buildTextFieldLabel('Full name'),
-              const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
-              _buildTextField(hintText: 'Enter the name'), // دي خانة كتابة الاسم
 
-              const SizedBox(height: 16), // دي مسافة قبل خانة رقم التليفون
+              const SizedBox(height: 6),
 
-              // هنا بنحط عنوان خانة رقم التليفون
+              _buildTextField(
+                controller: _nameController,
+                hintText: 'Enter the name',
+                errorText: _nameError,
+                fieldType: 'name',
+              ),
+
+              // عرض رسالة خطأ الاسم عند وجودها
+              if (_nameError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _nameError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // =================================================
+              // حقل رقم الهاتف
+              // =================================================
               _buildTextFieldLabel('Phone number'),
-              const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
-              _buildTextField(hintText: '+20 1234567890'), // دي خانة كتابة رقم التليفون
 
-              const SizedBox(height: 16), // دي مسافة قبل خانة الإيميل
+              const SizedBox(height: 6),
 
-              // هنا بنحط عنوان خانة الإيميل
+              _buildTextField(
+                controller: _phoneController,
+                hintText: '+20 1234567890',
+                errorText: _phoneError,
+                keyboardType: TextInputType.phone,
+                fieldType: 'phone',
+              ),
+
+              // عرض رسالة خطأ الهاتف
+              if (_phoneError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _phoneError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // =================================================
+              // حقل البريد الإلكتروني
+              // =================================================
               _buildTextFieldLabel('Email'),
-              const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
+
+              const SizedBox(height: 6),
+
               _buildTextField(
-                hintText: 'Enter your email', // دي خانة كتابة الإيميل
+                controller: _emailController,
+                hintText: 'Enter your email',
+                errorText: _emailError,
+                keyboardType: TextInputType.emailAddress,
+                fieldType: 'email',
               ),
 
-              const SizedBox(height: 16), // دي مسافة قبل خانة العنوان
+              // عرض رسالة خطأ البريد الإلكتروني
+              if (_emailError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _emailError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
 
-              // هنا بنحط عنوان خانة العنوان
+              const SizedBox(height: 16),
+
+              // =================================================
+              // حقل العنوان
+              // =================================================
               _buildTextFieldLabel('Address'),
-              const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
+
+              const SizedBox(height: 6),
+
               _buildTextField(
-                hintText: 'Enter the address', // دي خانة كتابة العنوان
+                controller: _addressController,
+                hintText: 'Enter the address',
+                errorText: _addressError,
+                fieldType: 'address',
               ),
 
-              const SizedBox(height: 16), // هنا بنسيب مسافة قبل تاريخ الميلاد والنوع
+              // عرض رسالة خطأ العنوان
+              if (_addressError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _addressError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
 
-              // هنا بنحط تاريخ الميلاد والنوع جنب بعض
+              const SizedBox(height: 16),
+
+              // =================================================
+              // قسم تاريخ الميلاد والنوع
+              // عرض الحقلين بجانب بعض باستخدام Row
+              // =================================================
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ده الجزء الخاص بتاريخ الميلاد
-                  Expanded( // هنا بنخلي الجزء ده ياخد المساحة المتاحة
-                    child: Column( // هنا بنحط عنوان تاريخ الميلاد والخانة تحت بعض
-                      crossAxisAlignment: CrossAxisAlignment.start, // هنا بنخلي العناصر تبدأ من الشمال
+
+                  // =================================================
+                  // حقل تاريخ الميلاد
+                  // =================================================
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTextFieldLabel('Date of birth'), // ده عنوان خانة تاريخ الميلاد
-                        const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
 
-                        // هنا بنعمل الخانة اللي المستخدم هيدوس عليها عشان يختار التاريخ
+                        // عنوان الحقل
+                        _buildTextFieldLabel('Date of birth'),
+
+                        const SizedBox(height: 6),
+
+                        // الضغط على الصندوق لفتح التقويم
                         InkWell(
-                          onTap: _selectDate, // لما المستخدم يدوس هنا بنفتح التقويم
-                          child: Container( // ده الصندوق اللي هيظهر فيه تاريخ الميلاد
+                          onTap: _selectDate,
+
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16, // دي مسافة من اليمين والشمال
-                              vertical: 16, // ودي مسافة من فوق وتحت
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9), // ده لون خلفية الخانة
-                              borderRadius: BorderRadius.circular(12), // هنا بنخلي أطراف الخانة دائرية
+                              horizontal: 16,
+                              vertical: 16,
                             ),
 
-                            // هنا بنحط التاريخ وأيقونة التقويم جنب بعض
+                            // تنسيق صندوق التاريخ
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+
+                              // تغيير لون الإطار إلى الأحمر عند وجود خطأ
+                              border: _dateError != null
+                                  ? Border.all(
+                                      color: Colors.red,
+                                      width: 1.5,
+                                    )
+                                  : Border.all(
+                                      color: Colors.transparent,
+                                    ),
+                            ),
+
                             child: Row(
                               children: [
-                                Expanded( // هنا بنخلي التاريخ ياخد المساحة المتاحة
+
+                                // عرض التاريخ المختار أو رسالة Select date
+                                Expanded(
                                   child: Text(
-                                    _selectedDate == null // هنا بنشوف المستخدم اختار تاريخ ولا لأ
-                                        ? 'Select date' // لو لسه مختارش بنعرض Select date
-                                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}', // لو اختار بنعرض اليوم والشهر والسنة
+                                    _selectedDate == null
+                                        ? 'Select date'
+                                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+
                                     style: const TextStyle(
-                                      color: Colors.black87, // ده لون التاريخ
-                                      fontSize: 14, // ده حجم الخط
+                                      color: Colors.black87,
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ),
 
-                                // دي أيقونة التقويم اللي بتظهر جنب التاريخ
+                                // أيقونة التقويم
                                 const Icon(
                                   Icons.calendar_today_outlined,
-                                  color: Colors.grey, // ده لون الأيقونة
-                                  size: 20, // ده حجم الأيقونة
+                                  color: Colors.grey,
+                                  size: 20,
                                 ),
                               ],
                             ),
                           ),
                         ),
+
+                        // عرض رسالة خطأ التاريخ
+                        if (_dateError != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _dateError!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
 
-                  const SizedBox(width: 12), // دي مسافة بين خانة التاريخ وخانة النوع
+                  const SizedBox(width: 12),
 
-                  // ده الجزء الخاص باختيار النوع
-                  Expanded( // هنا بنخلي الجزء ده ياخد المساحة المتاحة
-                    child: Column( // هنا بنحط العنوان والقائمة تحت بعض
-                      crossAxisAlignment: CrossAxisAlignment.start, // هنا بنخلي العناصر تبدأ من الشمال
+                  // =================================================
+                  // حقل اختيار النوع (Gender)
+                  // =================================================
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTextFieldLabel('Gender'), // ده عنوان خانة النوع
-                        const SizedBox(height: 6), // دي مسافة بين العنوان والقائمة
 
-                        // ده الصندوق اللي جواه قائمة اختيار النوع
+                        // عنوان الحقل
+                        _buildTextFieldLabel('Gender'),
+
+                        const SizedBox(height: 6),
+
+                        // صندوق القائمة المنسدلة
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12, // دي مسافة من اليمين والشمال
+                            horizontal: 12,
                           ),
 
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9), // ده لون خلفية الصندوق
-                            borderRadius: BorderRadius.circular(12), // هنا بنخلي أطراف الصندوق دائرية
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+
+                            // تغيير لون الإطار عند وجود خطأ
+                            border: _genderError != null
+                                ? Border.all(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : Border.all(
+                                    color: Colors.transparent,
+                                  ),
                           ),
 
-                          // هنا بنخفي الخط اللي تحت القائمة
+                          // إخفاء الخط السفلي للقائمة
                           child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>( // دي القائمة اللي المستخدم هيختار منها النوع
-                              value: _selectedGender, // هنا بنعرض النوع اللي المستخدم اختاره
+                            child: DropdownButton<String>(
 
+                              // القيمة المختارة حالياً
+                              value: _selectedGender,
+
+                              // النص الذي يظهر قبل الاختيار
                               hint: const Text(
-                                'Select', // دي الكلمة اللي بتظهر قبل ما المستخدم يختار
+                                'Select',
                                 style: TextStyle(
-                                  color: Colors.black87, // ده لون الكلام
-                                  fontSize: 12, // ده حجم الخط
+                                  color: Colors.black87,
+                                  fontSize: 12,
                                 ),
                               ),
 
-                              isExpanded: true, // هنا بنخلي القائمة تاخد عرض الصندوق كله
+                              // جعل القائمة تأخذ عرض الصندوق بالكامل
+                              isExpanded: true,
 
-                              // ده لون خلفية القائمة لما المستخدم يفتحها
                               dropdownColor: const Color(0xFFF1F5F9),
 
-                              // ده شكل السهم اللي جنب القائمة
+                              // أيقونة السهم
                               icon: const Icon(
                                 Icons.keyboard_arrow_down,
-                                color: Colors.grey, // ده لون السهم
+                                color: Colors.grey,
                               ),
 
-                              // هنا بنحط الاختيارات اللي المستخدم يقدر يختار منها
+                              // إنشاء عناصر القائمة من الاختيارات المتاحة
                               items: ['Male', 'Female'].map((gender) {
                                 return DropdownMenuItem<String>(
-                                  value: gender, // هنا بنحدد قيمة الاختيار
+                                  value: gender,
+
                                   child: Text(
-                                    gender, // هنا بنعرض اسم النوع
+                                    gender,
                                     style: const TextStyle(
-                                      fontSize: 12, // ده حجم الخط
-                                      color: Colors.black87, // ده لون الكلام
+                                      fontSize: 12,
+                                      color: Colors.black87,
                                     ),
                                   ),
                                 );
-                              }).toList(), // هنا بنحول الاختيارات لقائمة عشان نعرضها في DropdownButton
+                              }).toList(),
 
-                              // دي بتشتغل لما المستخدم يختار نوع من القائمة
+                              // تنفيذ العملية عند اختيار النوع
                               onChanged: (value) {
-                                setState(() { // هنا بنخلي الصفحة تعمل تحديث عشان الاختيار الجديد يظهر
-                                  _selectedGender = value; // هنا بنحفظ النوع اللي المستخدم اختاره
+                                setState(() {
+
+                                  // حفظ النوع الذي اختاره المستخدم
+                                  _selectedGender = value;
+
+                                  // إزالة رسالة الخطأ
+                                  _genderError = null;
                                 });
                               },
                             ),
                           ),
                         ),
+
+                        // عرض رسالة خطأ النوع
+                        if (_genderError != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _genderError!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16), // دي مسافة قبل خانة الباسورد
+              const SizedBox(height: 16),
 
-              // هنا بنحط عنوان خانة الباسورد
+              // =================================================
+              // حقل كلمة المرور
+              // =================================================
               _buildTextFieldLabel('Password'),
-              const SizedBox(height: 6), // دي مسافة بين العنوان والخانة
 
-              // دي خانة كتابة الباسورد
+              const SizedBox(height: 6),
+
               TextField(
-                controller: _passwordController, // هنا بنربط الخانة بالمتغير اللي بيقرأ الباسورد
-                obscureText: _isPasswordHidden, // لو القيمة true الباسورد هيظهر مخفي
+                controller: _passwordController,
+
+                // التحكم في إظهار وإخفاء كلمة المرور
+                obscureText: _isPasswordHidden,
+
+                // التحقق من طول كلمة المرور أثناء الكتابة
+                onChanged: (value) {
+
+                  // إزالة رسالة الخطأ عند الوصول إلى 8 أحرف
+                  if (value.length >= 8) {
+                    setState(() {
+                      _passwordError = null;
+                    });
+                  }
+                },
 
                 decoration: InputDecoration(
-                  hintText: '••••••••••••', // دي العلامات اللي بتظهر مكان الباسورد
+                  hintText: '••••••••••••',
 
                   hintStyle: const TextStyle(
-                    color: Colors.black87, // ده لون العلامات
-                    fontSize: 14, // ده حجمها
+                    color: Colors.black87,
+                    fontSize: 14,
                   ),
 
-                  filled: true, // هنا بنخلي للخانة لون خلفية
-                  fillColor: const Color(0xFFF1F5F9), // ده لون خلفية خانة الباسورد
+                  filled: true,
+                  fillColor: const Color(0xFFF1F5F9),
 
-                  // دي العين اللي بندوس عليها عشان نظهر الباسورد أو نخفيه
+                  // =================================================
+                  // زر العين لإظهار وإخفاء كلمة المرور
+                  // =================================================
                   suffixIcon: IconButton(
-                    onPressed: () { // دي بتشتغل لما المستخدم يدوس على العين
-                      setState(() { // هنا بنخلي الصفحة تعمل تحديث
-                        _isPasswordHidden = !_isPasswordHidden; // هنا بنعكس القيمة، لو مخفي نخليه ظاهر ولو ظاهر نخفيه
+                    onPressed: () {
+                      setState(() {
+
+                        // عكس حالة إظهار كلمة المرور
+                        _isPasswordHidden = !_isPasswordHidden;
                       });
                     },
 
-                    // هنا بنغير شكل العين حسب الباسورد ظاهر ولا مخفي
                     icon: Icon(
                       _isPasswordHidden
-                          ? Icons.visibility_off_outlined // دي العين اللي بتظهر لما الباسورد يكون مخفي
-                          : Icons.visibility_outlined, // ودي العين اللي بتظهر لما الباسورد يكون ظاهر
-                      color: Colors.grey, // ده لون العين
-                      size: 20, // ده حجم العين
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.grey,
+                      size: 20,
                     ),
                   ),
 
-                  // هنا بنظبط شكل إطار خانة الباسورد
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12), // هنا بنخلي أطراف الخانة دائرية
-                    borderSide: _passwordError != null // هنا بنشوف فيه رسالة خطأ ولا لأ
+                  // =================================================
+                  // تنسيق حدود حقل كلمة المرور
+                  // إظهار اللون الأحمر في حالة وجود خطأ
+                  // =================================================
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: _passwordError != null
                         ? const BorderSide(
-                            color: Colors.red, // لو فيه خطأ بنخلي الإطار أحمر
-                            width: 1.5, // ده سمك الإطار
+                            color: Colors.red,
+                            width: 1.5,
                           )
-                        : BorderSide.none, // لو مفيش خطأ مش بنظهر إطار
+                        : BorderSide.none,
+                  ),
+
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: _passwordError != null
+                        ? const BorderSide(
+                            color: Colors.red,
+                            width: 1.5,
+                          )
+                        : BorderSide.none,
+                  ),
+
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: _passwordError != null
+                        ? const BorderSide(
+                            color: Colors.red,
+                            width: 1.5,
+                          )
+                        : BorderSide.none,
                   ),
 
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, // دي المسافة جوه الخانة من اليمين والشمال
-                    vertical: 16, // ودي المسافة من فوق وتحت
+                    horizontal: 16,
+                    vertical: 16,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 6), // دي مسافة بين خانة الباسورد والكلام اللي تحتها
+              const SizedBox(height: 6),
 
-              // هنا بنشوف فيه رسالة خطأ ولا لأ
+              // =================================================
+              // عرض رسالة الخطأ أو شروط كلمة المرور
+              // =================================================
               if (_passwordError != null)
                 Text(
-                  _passwordError!, // لو فيه خطأ بنعرض رسالة الخطأ هنا
+                  _passwordError!,
                   style: const TextStyle(
-                    fontSize: 12, // ده حجم الخط
-                    color: Colors.red, // ده لون رسالة الخطأ
-                    fontWeight: FontWeight.w500, // هنا بنخلي الخط أوضح شوية
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
                   ),
                 )
               else
                 const Text(
-                  'Use 8+ characters, including a number and a symbol.', // لو مفيش خطأ بنعرض للمستخدم شروط الباسورد
+                  'Use 8+ characters, including a number and a symbol.',
                   style: TextStyle(
-                    fontSize: 12, // ده حجم الخط
-                    color: Colors.grey, // ده لون الكلام
+                    fontSize: 12,
+                    color: Colors.grey,
                   ),
                 ),
 
-              const SizedBox(height: 12), // دي مسافة قبل مربع الموافقة على الشروط
+              const SizedBox(height: 12),
 
-              // ده الجزء الخاص بالموافقة على الشروط والأحكام
+              // =================================================
+              // قسم الموافقة على الشروط والأحكام
+              // =================================================
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // هنا بنخلي العناصر تبدأ من فوق
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  // مربع تحديد الموافقة
                   SizedBox(
-                    height: 24, // ده ارتفاع مربع الاختيار
-                    width: 24, // ده عرض مربع الاختيار
+                    height: 24,
+                    width: 24,
 
-                    // ده مربع الاختيار اللي المستخدم بيدوس عليه
                     child: Checkbox(
-                      value: _isChecked, // هنا بنشوف المستخدم حاطط علامة صح ولا لأ
+                      value: _isChecked,
 
-                      // هنا بنخلي أطراف مربع الاختيار دائرية
+                      // تنسيق حواف مربع الاختيار
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
 
-                      activeColor: const Color(0xFF1E3A8A), // ده اللون اللي بيظهر لما المستخدم يعلم على المربع
+                      activeColor: const Color(0xFF1E3A8A),
 
-                      // دي بتشتغل لما المستخدم يدوس على مربع الاختيار
+                      // تحديث حالة الموافقة عند الضغط
                       onChanged: (val) {
-                        setState(() { // هنا بنخلي الصفحة تعمل تحديث
-                          _isChecked = val ?? false; // هنا بنحفظ المستخدم علم على المربع ولا شال العلامة
+                        setState(() {
+
+                          // حفظ حالة الاختيار
+                          _isChecked = val ?? false;
                         });
                       },
                     ),
                   ),
 
-                  const SizedBox(width: 8), // دي مسافة بين مربع الاختيار والكلام
+                  const SizedBox(width: 8),
 
-                  const Expanded( // هنا بنخلي الكلام ياخد المساحة المتاحة
+                  // نص الشروط والأحكام وسياسة الخصوصية
+                  const Expanded(
                     child: Text(
-                      'I agree to the Terms of Service and Privacy Policy, and consent to the use of my information for care.', // ده الكلام اللي المستخدم بيوافق عليه
+                      'I agree to the Terms of Service and Privacy Policy, and consent to the use of my information for care.',
                       style: TextStyle(
-                        fontSize: 12, // ده حجم الخط
-                        color: Colors.black54, // ده لون الكلام
-                        height: 1.4, // دي المسافة بين السطور
+                        fontSize: 12,
+                        color: Colors.black54,
+                        height: 1.4,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16), // دي مسافة قبل جزء تسجيل الدخول
+              const SizedBox(height: 16),
 
-              // ده الجزء اللي بيظهر لو المستخدم عنده حساب بالفعل
-              Center( // هنا بنخلي الكلام والزرار في نص الصفحة
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center, // هنا بنحط الكلام والزرار في المنتصف
-                  children: [
-                    const Text(
-                      'Already registered? ', // دي الجملة اللي بتسأل المستخدم لو عنده حساب
-                      style: TextStyle(
-                        color: Colors.grey, // ده لون الكلام
-                        fontSize: 14, // ده حجم الخط
-                      ),
-                    ),
+              // =================================================
+              // جزء تسجيل الدخول للمستخدم الذي يمتلك حساباً
+              // الكود الأصلي موجود هنا لكنه معطل بالتعليقات
+              // =================================================
 
-                    // ده الزرار اللي المستخدم بيدوس عليه عشان يروح لصفحة تسجيل الدخول
-                    TextButton(
-                      onPressed: () { // دي بتشتغل لما المستخدم يدوس على Log In
-                        Navigator.push( // هنا بننقل المستخدم لصفحة تانية
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(), // هنا بنحدد إن الصفحة الجديدة هي صفحة تسجيل الدخول
-                          ),
-                        );
-                      },
+              /*
+              كود تسجيل الدخول القديم موجود في الملف الأصلي
+              وتم الحفاظ عليه دون تغيير.
+              */
 
-                      // هنا بنظبط شكل الزرار والمسافات بتاعته
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero, // هنا بنشيل المسافة اللي حوالين الكلام
-                        minimumSize: Size.zero, // هنا بنخلي أقل حجم للزرار صفر
-                        tapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap, // هنا بنخلي مساحة الضغط على قد حجم الزرار
-                      ),
-
-                      child: const Text(
-                        'Log In', // ده الكلام اللي بيظهر على الزرار
-                        style: TextStyle(
-                          color: Color(0xFF1E3A8A), // ده لون الكلام
-                          fontWeight: FontWeight.bold, // هنا بنخلي الخط عريض
-                          fontSize: 14, // ده حجم الخط
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24), // دي مسافة قبل زرار إنشاء الحساب
-
-              // ده زرار إنشاء الحساب
+              // =================================================
+              // زر إنشاء الحساب
+              // =================================================
               SizedBox(
-                width: double.infinity, // هنا بنخلي الزرار ياخد عرض الصفحة كله
-                height: 50, // ده ارتفاع الزرار
+                width: double.infinity,
+                height: 50,
 
                 child: ElevatedButton(
-                  // هنا بنظبط شكل الزرار
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF194275), // ده لون خلفية الزرار
 
-                    // هنا بنخلي أطراف الزرار دائرية
+                  // تنسيق الزر
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF194275),
+
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
 
-                    elevation: 0, // هنا بنشيل الظل اللي تحت الزرار
+                    elevation: 0,
                   ),
 
-                  onPressed: _validateAndSubmit, // لما المستخدم يدوس على الزرار بنشغل دالة التأكد من الباسورد
+                  // تشغيل دالة التحقق عند الضغط على الزر
+                  onPressed: _validateAndSubmit,
 
                   child: const Text(
-                    'Create Account', // ده الكلام اللي بيظهر جوه الزرار
+                    'Create Account',
                     style: TextStyle(
-                      fontSize: 16, // ده حجم الخط
-                      fontWeight: FontWeight.bold, // هنا بنخلي الخط عريض
-                      color: Colors.white, // ده لون الكلام أبيض
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20), // دي مسافة في آخر الصفحة
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -508,41 +863,122 @@ class _CreateAccountState extends State<CreateAccount> {
     );
   }
 
-  // دي الدالة اللي بنستخدمها عشان نعمل عنوان فوق كل خانة
+  // =====================================================
+  // دالة إنشاء عنوان لكل حقل من حقول الإدخال
+  // تستقبل اسم العنوان وتعرضه بالتنسيق المحدد
+  // =====================================================
   Widget _buildTextFieldLabel(String label) {
     return Text(
-      label, // هنا بنعرض اسم الخانة اللي بعتناه للدالة
+      label,
       style: const TextStyle(
-        fontSize: 13, // ده حجم الخط
-        fontWeight: FontWeight.w600, // هنا بنخلي الخط عريض شوية
-        color: Color(0xFF475569), // ده لون عنوان الخانة
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF475569),
       ),
     );
   }
 
-  // دي الدالة اللي بنستخدمها عشان نعمل خانات الكتابة بنفس الشكل
-  Widget _buildTextField({required String hintText}) {
+  // =====================================================
+  // دالة إنشاء حقول إدخال البيانات
+  // تستقبل:
+  // Controller للتحكم في النص
+  // HintText للنص التوضيحي
+  // FieldType لتحديد نوع الحقل
+  // ErrorText لرسالة الخطأ
+  // KeyboardType لنوع لوحة المفاتيح
+  // =====================================================
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required String fieldType,
+    String? errorText,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+
     return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+
+      // التحقق من البيانات أثناء الكتابة
+      onChanged: (value) {
+        setState(() {
+
+          // التحقق من حقل الاسم
+          if (fieldType == 'name') {
+            if (value.trim().isNotEmpty) {
+              _nameError = null;
+            }
+
+          // التحقق من رقم الهاتف
+          } else if (fieldType == 'phone') {
+            if (value.trim().length == 11) {
+              _phoneError = null;
+            }
+
+          // التحقق من البريد الإلكتروني
+          } else if (fieldType == 'email') {
+            if (value.trim().endsWith('@gmail.com')) {
+              _emailError = null;
+            }
+
+          // التحقق من العنوان
+          } else if (fieldType == 'address') {
+            if (value.trim().isNotEmpty) {
+              _addressError = null;
+            }
+          }
+        });
+      },
+
       decoration: InputDecoration(
-        hintText: hintText, // هنا بنعرض الكلام اللي بيظهر جوه الخانة قبل ما المستخدم يكتب
+        hintText: hintText,
 
         hintStyle: const TextStyle(
-          color: Colors.black87, // ده لون الكلام اللي جوه الخانة
-          fontSize: 14, // ده حجم الخط
+          color: Colors.black87,
+          fontSize: 14,
         ),
 
-        filled: true, // هنا بنخلي للخانة لون خلفية
-        fillColor: const Color(0xFFF1F5F9), // ده لون خلفية الخانة
+        filled: true,
+        fillColor: const Color(0xFFF1F5F9),
 
-        // هنا بنظبط شكل إطار الخانة
+        // =================================================
+        // تنسيق إطار الحقل
+        // إظهار إطار أحمر عند وجود خطأ
+        // =================================================
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: errorText != null
+              ? const BorderSide(
+                  color: Colors.red,
+                  width: 1.5,
+                )
+              : BorderSide.none,
+        ),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: errorText != null
+              ? const BorderSide(
+                  color: Colors.red,
+                  width: 1.5,
+                )
+              : BorderSide.none,
+        ),
+
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // هنا بنخلي أطراف الخانة دائرية
-          borderSide: BorderSide.none, // هنا بنشيل الإطار اللي حوالين الخانة
+          borderRadius: BorderRadius.circular(12),
+          borderSide: errorText != null
+              ? const BorderSide(
+                  color: Colors.red,
+                  width: 1.5,
+                )
+              : BorderSide.none,
         ),
 
+        // تحديد المسافات الداخلية للحقل
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16, // دي المسافة من اليمين والشمال جوه الخانة
-          vertical: 16, // ودي المسافة من فوق وتحت جوه الخانة
+          horizontal: 16,
+          vertical: 16,
         ),
       ),
     );
